@@ -1,0 +1,26 @@
+{
+  "environment": "web",
+  "format": "html",
+  "prefix": "https://storage.googleapis.com",
+  "mainga": "UA-49880327-14",
+  "updated": "2021-08-17T12:25:05Z",
+  "id": "LINEnotifyAPI",
+  "duration": 0,
+  "title": "LINEで自分専用の天気予報とコロナ感染者数お知らせボットを作ろう",
+  "authors": "specialman9999",
+  "summary": "LINEで自分専用の天気予報とコロナ感染者数お知らせボットを作ろう",
+  "source": "17ZmZMIiiMITKftM2v08vPkE-5jpnhXaQXcBZeQMGDwE",
+  "theme": "web",
+  "status": [
+    "published"
+  ],
+  "category": [
+    "Web"
+  ],
+  "tags": [
+    "gas",
+    "line",
+    "web"
+  ],
+  "url": "LINEnotifyAPI"
+}

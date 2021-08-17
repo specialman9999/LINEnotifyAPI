@@ -1,0 +1,317 @@
+
+<!doctype html>
+
+<html>
+<head>
+  <meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1.0, user-scalable=yes">
+  <meta name="theme-color" content="#4F7DC9">
+  <meta charset="UTF-8">
+  <title>LINEで自分専用の天気予報とコロナ感染者数お知らせボットを作ろう</title>
+  <link rel="stylesheet" href="//fonts.googleapis.com/css?family=Source+Code+Pro:400|Roboto:400,300,400italic,500,700|Roboto+Mono">
+  <link rel="stylesheet" href="//fonts.googleapis.com/icon?family=Material+Icons">
+  <link rel="stylesheet" href="https://storage.googleapis.com/codelab-elements/codelab-elements.css">
+  <style>
+    .success {
+      color: #1e8e3e;
+    }
+    .error {
+      color: red;
+    }
+  </style>
+</head>
+<body>
+  <google-codelab-analytics gaid="UA-49880327-14"></google-codelab-analytics>
+  <google-codelab codelab-gaid=""
+                  id="LINEnotifyAPI"
+                  title="LINEで自分専用の天気予報とコロナ感染者数お知らせボットを作ろう"
+                  environment="web"
+                  feedback-link="">
+    
+      <google-codelab-step label="本日のゴール" duration="0">
+        <p>LINE notifyとGASを用いて、自分専用の天気予報とコロナ感染者数お知らせボットを作る。</p>
+<p class="image-container"><img style="width: 392.70px" src="img\acd8e441407b1288.png"></p>
+<h2 is-upgraded><strong>システム構成イメージ</strong></h2>
+<p class="image-container"><img style="width: 718.86px" src="img\a04dc2ffc3e9367.png"></p>
+
+
+      </google-codelab-step>
+    
+      <google-codelab-step label="LINE Notify とは" duration="0">
+        <p>LINEが提供する公式アカウント&#34;<a href="https://notify-bot.line.me/ja/" target="_blank">LINE Notify</a>&#34;から通知が受信できる機能です。</p>
+<aside class="special"><p>notify ：【和訳】  通知する</p>
+</aside>
+<p class="image-container"><img style="width: 388.50px" src="img\9753955437b1e663.png"></p>
+<aside class="special"><p>１つのLINEアカウントで100個までのトークンが発行できます。</p>
+</aside>
+<p>GithubやIFTTTなどの外部サービスとの連携が多いですが、</p>
+<p>今回はGASとスプレッドシートを使って、LINE Notifyへ通知を行ってみます。</p>
+<aside class="warning"><p>通知は無料ですが、1時間で1000回までの通知制限があります。</p>
+</aside>
+
+
+      </google-codelab-step>
+    
+      <google-codelab-step label="LINE Notify にログイン" duration="0">
+        <p>LINE Notify(<a href="https://notify-bot.line.me/ja/" target="_blank">https://notify-bot.line.me/ja/</a>)の画面へ移動し、右上のログインをクリックしてください。</p>
+<p class="image-container"><img style="width: 624.00px" src="img\99493ed9a9906d28.png"></p>
+<p>こちらで使うメールアドレスは、LINEを利用するときに登録したメールアドレスとパスワードです。</p>
+<aside class="special"><p>メールアドレスは、スマホのLINEアプリからホーム→右上の歯車マーク→アカウントにて確認できます。</p>
+</aside>
+<p class="image-container"><img style="width: 624.00px" src="img\940d9af03d67dafd.png"></p>
+<p>ログインができましたら右上の名前の所をクリックして、マイページを選択してください。</p>
+<p class="image-container"><img style="width: 624.00px" src="img\aa7cecc8103de0f3.png"></p>
+<p>マイページに行くと連携中のサービスがあれば表示されます。</p>
+<p>そのページの一番下に、アクセストークンの発行があります。</p>
+<p class="image-container"><img style="width: 624.00px" src="img\8f02167212bbd92d.png"></p>
+<p>アクセストークン(認証キー)の発行の「トークンの発行」ボタンを押下してください。</p>
+<p class="image-container"><img style="width: 624.00px" src="img\37bdef0ae9248aab.png"></p>
+<p>トークンを発行する前に、</p>
+<p>・通知の際に表示される名称</p>
+<p>・通知を送信するトークルームの選択</p>
+<p>が必要となります。</p>
+<p class="image-container"><img style="width: 378.00px" src="img\45bda5d936825414.png"></p>
+<aside class="special"><p>今回は、自分自分のみに通知を行うため「1：1でLINE Notifyから通知を受け取る」を選択してください。</p>
+</aside>
+<p>入力と選択が終わりましたら「発行する」ボタンを押下してください。</p>
+<p>トークンが発行されましたら必ずコピーをして、メモ帳などに記載しておいてください。</p>
+<aside class="warning"><p>トークンは、この時しか表示されず、一度閉じてしまうと確認ができなくなります。</p>
+<p>必ずメモ帳などに、記載しておいてください。</p>
+</aside>
+<p class="image-container"><img style="width: 387.00px" src="img\c501dce23743f06a.png"></p>
+<p>トークンのコピーが終わり、「閉じる」を押すと、連携中のサービスに、トークンを発行した一覧が表示されます。</p>
+
+
+      </google-codelab-step>
+    
+      <google-codelab-step label="GASとLINE Notify APIで通知を体験" duration="0">
+        <p>冒頭のイラストの構成をこちらの<a href="https://docs.google.com/spreadsheets/d/1w31BV3KY3rF4Ei3RHcw4_88v71XdIX8jTlQg5lNQyKg/edit?usp=sharing" target="_blank">スプレッドシート</a>に準備いたしました。</p>
+<p>コピーして皆様のドライブに保存してください。</p>
+<p><a href="https://docs.google.com/spreadsheets/d/1w31BV3KY3rF4Ei3RHcw4_88v71XdIX8jTlQg5lNQyKg/edit?usp=sharing" target="_blank"><paper-button class="colored" raised>スプレッドシートのコピーへ</paper-button></a></p>
+<p class="image-container"><img style="width: 712.32px" src="img\a04dc2ffc3e9367.png"></p>
+<p>コピーが終わりましたら作業に入ります。</p>
+<p>先ほどコピーしましたトークンをC4セルに貼り付けてください。。</p>
+<p class="image-container"><img style="width: 624.00px" src="img\f26dfb27b50ccceb.png"></p>
+<p>貼り付けが終わりましたら</p>
+<p>「LINE Notify送信」ボタンを押下してください。</p>
+<p>これだけです！！</p>
+<p>そうすると、現在C5セルに記入されているものが自動的に通知されるようになっております。</p>
+<p>（C5セルには「天気予報シート」に記載されているものが送信されます。後ほど解説いたします。）</p>
+<p>次のページでGASのコードを説明いたします。</p>
+
+
+      </google-codelab-step>
+    
+      <google-codelab-step label="GASの内容" duration="0">
+        <p>今回実行しましたGASのコードです。</p>
+<pre>function Button(){
+
+//開いているスプレッドシートを取得
+var ss = SpreadsheetApp.getActiveSpreadsheet();
+
+//スプレッドシートのシート名を「sheet」という変数に定義
+var sheet = ss.getSheetByName(&#34;notify&#34;);
+
+ // LINEから取得したトークン
+let token = sheet.getRange(4,3).getValue();
+
+//送信するメッセージ
+let messageText = sheet.getRange(5,3).getValue();
+ 
+
+//ここからはLINE Notify APIのドキュメント(説明書)にこのように送ってくださいと
+//記載されている内容をそのまま記載しております。
+
+ let options = {
+   &#34;method&#34; : &#34;post&#34;,
+   &#34;headers&#34; : {
+     &#34;Authorization&#34; : &#34;Bearer &#34;+ token
+   },
+   &#34;payload&#34; : {
+     &#34;message&#34; : messageText
+   }
+ }
+
+//どこのURLにデータを送信するか定義します。こちらもドキュメントに記載されているURLです。
+ let url  = &#34;https://notify-api.line.me/api/notify&#34;
+//指定されたURLにデータを送信します。
+ UrlFetchApp.fetch(url, options)
+}</pre>
+
+
+      </google-codelab-step>
+    
+      <google-codelab-step label="天気予報の情報はどこから取ってきた？？" duration="0">
+        <p>天気予報の情報ですが、どこから取ってきたのかと思われる方もいらっしゃるかと思います。</p>
+<p>天気予報シートのB4セルに関数が記載されております。</p>
+<p>その中の</p>
+<p>IMPORTHTML</p>
+<p>という関数を利用しております。</p>
+<p>こちらの関数は、HTML(よく見るWEBサイトです)から表やリストのデータを表示してくれます。</p>
+<p>今回は</p>
+<pre><code>=IMPORTHTML(B2,&#34;table&#34;, 7)</code></pre>
+<p>と記載しております。</p>
+<p>B2にはヤフーの大阪の天気予報のURLを記載しております。</p>
+<p>２つめの&#34;table&#34;は、ページ内に表示されている表を記載しているタグのことです。</p>
+<p>最後の「７」ですが、何個目のtableであるかを指定しております。</p>
+<p>今回は7個目のテーブルでしたので「7」と記載しております。</p>
+<p>緊急情報や、花粉情報などが入ったときはテーブルの順番が前後することがありますので</p>
+<p>数字を変えてみてください。</p>
+<aside class="special"><p>Chromeをご利用のかたは、天気予報の画面で右クリックして「検証」のボタンをおしてみてください。右側に、そのページのコードが表示されると思います。</p>
+<p>そこで「ctrlキー」と「ｆ」を同時に押下すると検索ができますので「table」と入力してEnterを押下してみてください。すると、tableタグのところが表示されていきます。これで何番目のtableかがわかるようになります。</p>
+</aside>
+<p class="image-container"><img style="width: 624.00px" src="img\3988de80d25df5e.png"></p>
+<p>詳しい説明は<a href="https://support.google.com/docs/answer/3093339?hl=ja" target="_blank">Googleのヘルプ</a>をご覧ください。</p>
+
+
+      </google-codelab-step>
+    
+      <google-codelab-step label="オープンデータを利用したデータ取得の方法" duration="0">
+        <p>先ほどはスプレッドシートの関数でデータを取得いたしましたが、</p>
+<p>公的機関等がオープンデータとしてデータを公開しているものが多数あります。</p>
+<p>その中の１つにJSON形式と呼ばれる形式で公開されているものがあります。</p>
+<p>人がそのデータを見たときは、わかりにくいですが、プログラムを使うときは非常に扱いやすい形式になっております。</p>
+<p>今回は、内閣官房が公開している新型コロナウイルスの感染者数のオープンデータを利用してみます。</p>
+<p>こちら（<a href="https://corona.go.jp/dashboard/" target="_blank">https://corona.go.jp/dashboard/</a>）が、新型コロナウイルス感染症対策のダッシュボードのページになっております。</p>
+<p>この中の中盤あたりに、全国の感染者数のオープンデータがおかれております。</p>
+<p class="image-container"><img style="width: 624.00px" src="img\bff37c2cf36edd30.png"></p>
+<p>今回は全国の感染者数オープンデータを利用いたします。</p>
+<p>こちら(<a href="https://opendata.corona.go.jp/api/Covid19JapanAll" target="_blank">https://opendata.corona.go.jp/api/Covid19JapanAll</a>)が、そのデータです。人が見ると非常に見づらいですが、プログラムを使って処理するときには扱いやすいデータです。</p>
+<pre><code>{&#34;errorInfo&#34;:{&#34;errorFlag&#34;:&#34;0&#34;,&#34;errorCode&#34;:null,&#34;errorMessage&#34;:null},&#34;itemList&#34;:[{&#34;date&#34;:&#34;2021-08-15&#34;,&#34;name_jp&#34;:&#34;北海道&#34;,&#34;npatients&#34;:&#34;49552&#34;},{&#34;date&#34;:&#34;2021-08-15&#34;,&#34;name_jp&#34;:&#34;青森県&#34;,&#34;npatients&#34;:&#34;3140&#34;},{&#34;date&#34;:&#34;2021-08-15&#34;,&#34;name_jp&#34;:&#34;岩手県&#34;,&#34;npatients&#34;:&#34;2428&#34;},{&#34;date&#34;:&#34;2021-08-15&#34;,&#34;name_jp&#34;:&#34;宮城県&#34;,&#34;npatients&#34;:&#34;11597&#34;},{&#34;date&#34;:&#34;2021-08-15&#34;,&#34;name_jp&#34;:&#34;秋田県&#34;,&#34;npatients&#34;:&#34;1185&#34;},{&#34;date&#34;:&#34;2021-08-15&#34;,&#34;name_jp&#34;:&#34;山形県&#34;,&#34;npatients&#34;:&#34;2548&#34;},{&#34;date&#34;:&#34;2021-08-15&#34;,&#34;name_jp&#34;:&#34;福島県&#34;,&#34;npatients&#34;:&#34;7292&#34;},{&#34;date&#34;:&#34;2021-08-15&#34;,&#34;name_jp&#34;:&#34;茨城県&#34;,&#34;npatients&#34;:&#34;16201&#34;},{&#34;date&#34;:&#34;2021-08-15&#34;,&#34;name_jp&#34;:&#34;栃木県&#34;,&#34;npatients&#34;:&#34;10328&#34;},{&#34;date&#34;:&#34;2021-08-15&#34;,&#34;name_jp&#34;:&#34;群馬県&#34;,&#34;npatients&#34;:&#34;10979&#34;},{&#34;date&#34;:&#34;2021-08-15&#34;,&#34;name_jp&#34;:&#34;埼玉県&#34;,&#34;npatients&#34;:&#34;74669&#34;},{&#34;date&#34;:&#34;2021-08-15&#34;,&#34;name_jp&#34;:&#34;千葉県&#34;,&#34;npatients&#34;:&#34;63951&#34;},{&#34;date&#34;:&#34;2021-08-15&#34;,&#34;name_jp&#34;:&#34;東京都&#34;,&#34;npatients&#34;:&#34;279132&#34;},{&#34;date&#34;:&#34;2021-08-15&#34;,&#34;name_jp&#34;:&#34;神奈川県&#34;,&#34;npatients&#34;:&#34;110578&#34;},{&#34;date&#34;:&#34;2021-08-15&#34;,&#34;name_jp&#34;:&#34;新潟県&#34;,&#34;npatients&#34;:&#34;5160&#34;},{&#34;date&#34;:&#34;2021-08-15&#34;,&#34;name_jp&#34;:&#34;富山県&#34;,&#34;npatients&#34;:&#34;2959&#34;},{&#34;date&#34;:&#34;2021-08-15&#34;,&#34;name_jp&#34;:&#34;石川県&#34;,&#34;npatients&#34;:&#34;6263&#34;},{&#34;date&#34;:&#34;2021-08-15&#34;,&#34;name_jp&#34;:&#34;福井県&#34;,&#34;npatients&#34;:&#34;2014&#34;},{&#34;date&#34;:&#34;2021-08-15&#34;,&#34;name_jp&#34;:&#34;山梨県&#34;,&#34;npatients&#34;:&#34;3057&#34;},{&#34;date&#34;:&#34;2021-08-15&#34;,&#34;name_jp&#34;:&#34;長野県&#34;,&#34;npatients&#34;:&#34;6235&#34;},{&#34;date&#34;:&#34;2021-08-15&#34;,&#34;name_jp&#34;:&#34;岐阜県&#34;,&#34;npatients&#34;:&#34;10905&#34;},{&#34;date&#34;:&#34;2021-08-15&#34;,&#34;name_jp&#34;:&#34;静岡県&#34;,&#34;npatients&#34;:&#34;14026&#34;},{&#34;date&#34;:&#34;2021-08-15&#34;,&#34;name_jp&#34;:&#34;愛知県&#34;,&#34;npatients&#34;:&#34;59658&#34;},{&#34;date&#34;:&#34;2021-08-15&#34;,&#34;name_jp&#34;:&#34;三重県&#34;,&#34;npatients&#34;:&#34;7078&#34;},{&#34;date&#34;:&#34;2021-08-15&#34;,&#34;name_jp&#34;:&#34;滋賀県&#34;,&#34;npatients&#34;:&#34;7612&#34;},{&#34;date&#34;:&#34;2021-08-15&#34;,&#34;name_jp&#34;:&#34;京都府&#34;,&#34;npatients&#34;:&#34;22584&#34;},{&#34;date&#34;:&#34;2021-08-15&#34;,&#34;name_jp&#34;:&#34;大阪府&#34;,&#34;npatients&#34;:&#34;132447&#34;},{&#34;date&#34;:&#34;2021-08-15&#34;,&#34;name_jp&#34;:&#34;兵庫県&#34;,&#34;npatients&#34;:&#34;50358&#34;},{&#34;date&#34;:&#34;2021-08-15&#34;,&#34;name_jp&#34;:&#34;奈良県&#34;,&#34;npatients&#34;:&#34;10469&#34;},{&#34;date&#34;:&#34;2021-08-15&#34;,&#34;name_jp&#34;:&#34;和歌山県&#34;,&#34;npatients&#34;:&#34;3475&#34;},{&#34;date&#34;:&#34;2021-08-15&#34;,&#34;name_jp&#34;:&#34;鳥取県&#34;,&#34;npatients&#34;:&#34;1078&#34;},{&#34;date&#34;:&#34;2021-08-15&#34;,&#34;name_jp&#34;:&#34;島根県&#34;,&#34;npatients&#34;:&#34;917&#34;},{&#34;date&#34;:&#34;2021-08-15&#34;,&#34;name_jp&#34;:&#34;岡山県&#34;,&#34;npatients&#34;:&#34;9975&#34;},{&#34;date&#34;:&#34;2021-08-15&#34;,&#34;name_jp&#34;:&#34;広島県&#34;,&#34;npatients&#34;:&#34;13643&#34;},{&#34;date&#34;:&#34;2021-08-15&#34;,&#34;name_jp&#34;:&#34;山口県&#34;,&#34;npatients&#34;:&#34;3768&#34;},{&#34;date&#34;:&#34;2021-08-15&#34;,&#34;name_jp&#34;:&#34;徳島県&#34;,&#34;npatients&#34;:&#34;1942&#34;},{&#34;date&#34;:&#34;2021-08-15&#34;,&#34;name_jp&#34;:&#34;香川県&#34;,&#34;npatients&#34;:&#34;2985&#34;},{&#34;date&#34;:&#34;2021-08-15&#34;,&#34;name_jp&#34;:&#34;愛媛県&#34;,&#34;npatients&#34;:&#34;3586&#34;},{&#34;date&#34;:&#34;2021-08-15&#34;,&#34;name_jp&#34;:&#34;高知県&#34;,&#34;npatients&#34;:&#34;2315&#34;},{&#34;date&#34;:&#34;2021-08-15&#34;,&#34;name_jp&#34;:&#34;福岡県&#34;,&#34;npatients&#34;:&#34;49801&#34;},{&#34;date&#34;:&#34;2021-08-15&#34;,&#34;name_jp&#34;:&#34;佐賀県&#34;,&#34;npatients&#34;:&#34;3439&#34;},{&#34;date&#34;:&#34;2021-08-15&#34;,&#34;name_jp&#34;:&#34;長崎県&#34;,&#34;npatients&#34;:&#34;4132&#34;},{&#34;date&#34;:&#34;2021-08-15&#34;,&#34;name_jp&#34;:&#34;熊本県&#34;,&#34;npatients&#34;:&#34;8909&#34;},{&#34;date&#34;:&#34;2021-08-15&#34;,&#34;name_jp&#34;:&#34;大分県&#34;,&#34;npatients&#34;:&#34;4430&#34;},{&#34;date&#34;:&#34;2021-08-15&#34;,&#34;name_jp&#34;:&#34;宮崎県&#34;,&#34;npatients&#34;:&#34;3706&#34;},{&#34;date&#34;:&#34;2021-08-15&#34;,&#34;name_jp&#34;:&#34;鹿児島県&#34;,&#34;npatients&#34;:&#34;5293&#34;},{&#34;date&#34;:&#34;2021-08-15&#34;,&#34;name_jp&#34;:&#34;沖縄県&#34;,&#34;npatients&#34;:&#34;32909&#34;}</code></pre>
+<aside class="special"><p>URLの後に、【?dataName=都道府県名】を入力すれば、その都道府県のデータで絞り込むことができます。</p>
+<p>例） <a href="https://opendata.corona.go.jp/api/Covid19JapanAll?dataName=%E5%A4%A7%E9%98%AA%E5%BA%9C" target="_blank">https://opendata.corona.go.jp/api/Covid19JapanAll?dataName=大阪府</a></p>
+</aside>
+
+
+      </google-codelab-step>
+    
+      <google-codelab-step label="GASを使ってJSONデータをスプレッドシートに転機" duration="0">
+        <p>では、実際にデータを取得してみましょう。</p>
+<p>先ほどコピーしたスプレッドシートにある、【コロナ感染者】シートを開いてください。</p>
+<p>次に、G2セルでデータを抽出したい都道府県を選択してください。(１つの都道府県しか選択できません。)</p>
+<p>選択がおわりましたら、【データ取得】ボタンを押下してみてください。</p>
+<p>すると、A列～D列に日付、都道府県、累計感染者数、新規感染者数が表示されます。</p>
+<aside class="warning"><p>こちらのオープンデータは速報値ではないので、数日前のデータが表示されます。</p>
+</aside>
+<p>グラフも自動で表示されるようにしております。</p>
+<p>下記が今回使用したGASのコードです。</p>
+<pre><code>function covid19() {
+
+//変数spreadsheetに指定のスプレッドシートオブジェクトを取得します
+ var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var sheet = ss.getSheetByName(&#34;コロナ感染者&#34;);
+
+
+ //都道府県取得
+  var pref = sheet.getRange(2,7).getValue();
+ var result = encodeURI(pref);
+   
+  //JSONのURL
+  var url1 = &#34;https://opendata.corona.go.jp/api/Covid19JapanAll?dataName=&#34; + result;
+
+  // JSONデータを取得
+  var json = UrlFetchApp.fetch(url1).getContentText();
+  // GAS(JavaScript)でJSONデータの読み込み
+  var jsonData = JSON.parse(json);
+
+  //JSONデータの「itemList」の部分(人数などが記載されているデータ)を読み込み
+  var covid19 = jsonData.itemList;
+
+  var lastRow = covid19.length;
+
+ 
+  let array = [];
+  for(let i = 0;i&lt;lastRow;i++){
+    //一時配列を用意
+    let tempArray = [];
+    
+    //指定したデータを順番に取り出す
+    tempArray.push(covid19[i][&#34;date&#34;]);
+    tempArray.push(covid19[i][&#34;name_jp&#34;]);
+    tempArray.push(covid19[i][&#34;npatients&#34;]);
+   var j=i+1;
+   
+    if(j!== lastRow){
+    var old = covid19[j][&#34;npatients&#34;];
+    var today = covid19[i][&#34;npatients&#34;];
+    var add = today - old;
+  tempArray.push(add); 
+    }else{
+    tempArray.push(&#34;0&#34;); 
+    }
+    //書き込み用配列にpush
+    array.push(tempArray);
+  
+  }</code></pre>
+
+
+      </google-codelab-step>
+    
+      <google-codelab-step label="GASを使って、LINE Notify APIへ送信" duration="0">
+        <p>では、先ほど取得した都道府県、最新のコロナ感染者数の新規感染者数(1行目のデータ)を</p>
+<p>LINEに通知するコードを追加します。</p>
+<p>先ほどのスプレッドシートで</p>
+<p>【ツール】→【スクリプトエディタ】を選択します。</p>
+<p class="image-container"><img style="width: 594.00px" src="img\2c1f7306d4f2b35.png"></p>
+<p>開いた画面の12～13行目に次のコードを追加します。</p>
+<pre><code>covid19()//covid19.gsに記載しているcovid19()のファイルを実行するコードです。
+messageText = ss.getSheetByName(&#34;コロナ感染者&#34;).getRange(1,2).getValue() + &#34;新規感染者&#34; +ss.getSheetByName(&#34;コロナ感染者&#34;).getRange(1,4).getValue() +&#34;人&#34;;</code></pre>
+<h3 is-upgraded><img style="width: 719.07px" src="img\514ca72382b851c7.png"></h3>
+<aside class="warning"><p>コードがわかる方へ・・・</p>
+<p>本来であればコメントアウトしなければならないコードがありますが、今回は間違って削除しないように、上書きする方法で行っております。</p>
+</aside>
+<h3 is-upgraded>追記が完了しましたら、保存ボタンを押してコードを保存してください。</h3>
+<h3 is-upgraded><img style="width: 624.00px" src="img\de2236a17061442c.png"></h3>
+<p>保存ができましたら、実行ボタンを押してください。</p>
+<p>LINE Notify APIでデータが飛びLINEに通知がいきます。</p>
+
+
+      </google-codelab-step>
+    
+      <google-codelab-step label="トリガー設定をして指定した時間に通知が行くようにする。" duration="0">
+        <p>現在のままですと、スプレッドシートのLINE Notify送信ボタンや通知ボタンを押さないと実行されません。</p>
+<p>そこで、指定した時間に自動で送信されるようにします。(GASのトリガー設定)</p>
+<p>先ほどのスクリプトエディタの画面から左端にある時計のマーク(トリガー)のボタンを押下してください。</p>
+<p>トリガーの設定画面にいきましたら右下にある【トリガーを追加】ボタンを押下してください。</p>
+<p class="image-container"><img style="width: 624.00px" src="img\a3a37434602cfb14.png"></p>
+<p>設定画面が開きますので以下のように設定してください。</p>
+<pre><code>・実行する関数
+Button  (GASに記載しているfunction Button()......のことです。)
+
+・実行するデプロイ
+Head    (保存されている最新のバージョンを実行するということです)
+
+・イベントのソース
+時間主導型
+
+・時間ベースのトリガーのタイプ
+日付ベースのタイマー
+
+・時刻
+通知を送りたい時間帯を選択してください。(細かい時間まではしていできません。)</code></pre>
+<p>設定が完了しましたら、右下の<strong>【保存】</strong>を押下してください。</p>
+<p class="image-container"><img style="width: 624.00px" src="img\1e2cc77e3ed6d4ec.png"></p>
+<p>すると画面に設定されたトリガーが表示されます。</p>
+<p>これで指定した時間にGASが実行されLINE Notifyが送信されます。</p>
+<p class="image-container"><img style="width: 624.00px" src="img\42a66f625812b0fb.png"></p>
+
+
+      </google-codelab-step>
+    
+      <google-codelab-step label="完了です！！" duration="0">
+        <p>いかがでしたでしょうか？</p>
+<p>LINE Notify APIは簡単にいろいろと利用が可能です。</p>
+<p>天気予報のほかに、占いや、株価、為替、気になるニュースなどいろいろと応用できますのでいろいろと内容を触っていただきLINE APIライフをお楽しみください！</p>
+
+
+      </google-codelab-step>
+    
+  </google-codelab>
+
+  <script src="https://storage.googleapis.com/codelab-elements/native-shim.js"></script>
+  <script src="https://storage.googleapis.com/codelab-elements/custom-elements.min.js"></script>
+  <script src="https://storage.googleapis.com/codelab-elements/prettify.js"></script>
+  <script src="https://storage.googleapis.com/codelab-elements/codelab-elements.js"></script>
+  <script src="//support.google.com/inapp/api.js"></script>
+
+</body>
+</html>
