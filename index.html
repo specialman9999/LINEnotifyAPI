@@ -93,7 +93,18 @@
 <p class="image-container"><img style="width: 624.00px" src="img\f26dfb27b50ccceb.png"></p>
 <p>貼り付けが終わりましたら</p>
 <p>「LINE Notify送信」ボタンを押下してください。</p>
-<p>これだけです！！</p>
+<p>初回のみ承認が必要となりますので続行ボタンを押下してください。</p>
+<p class="image-container"><img style="width: 624.00px" src="img\f0eaeee360115abf.png"></p>
+<p>ここで使用するアカウントを選択してください。</p>
+<p class="image-container"><img style="width: 554.00px" src="img\10a7f4882388bb41.png"></p>
+<p>次に、詳細を表示を押し、『【LINEDC_LINEnotify】(安全ではないページ)に移動』を選択してください</p>
+<aside class="special"><p>プログラムを実行するための警告文となります。</p>
+<p>今回は、LINEnotifyに関するGASのみとなりますのでご安心ください。</p>
+</aside>
+<p class="image-container"><img style="width: 605.00px" src="img\257f497f79cede1.png"></p>
+<p class="image-container"><img style="width: 504.00px" src="img\b5a7138424cfcb17.png"></p>
+<p>これで承認が完了となりGASが実行できるようになります。</p>
+<p>再度ここで「LINE Notify送信」ボタンを押下してください。</p>
 <p>そうすると、現在C5セルに記入されているものが自動的に通知されるようになっております。</p>
 <p>（C5セルには「天気予報シート」に記載されているものが送信されます。後ほど解説いたします。）</p>
 <p>次のページでGASのコードを説明いたします。</p>
@@ -169,7 +180,7 @@ let messageText = sheet.getRange(5,3).getValue();
         <p>先ほどはスプレッドシートの関数でデータを取得いたしましたが、</p>
 <p>公的機関等がオープンデータとしてデータを公開しているものが多数あります。</p>
 <p>その中の１つにJSON形式と呼ばれる形式で公開されているものがあります。</p>
-<p>人がそのデータを見たときは、わかりにくいですが、プログラムを使うときは扱いやすい形式になっております。</p>
+<p>人がそのデータを見たときは、わかりにくいですが、プログラムを使うときは非常に扱いやすい形式になっております。</p>
 <p>今回は、内閣官房が公開している新型コロナウイルスの感染者数のオープンデータを利用してみます。</p>
 <p>こちら（<a href="https://corona.go.jp/dashboard/" target="_blank">https://corona.go.jp/dashboard/</a>）が、新型コロナウイルス感染症対策のダッシュボードのページになっております。</p>
 <p>この中の中盤あたりに、全国の感染者数のオープンデータがおかれております。</p>
